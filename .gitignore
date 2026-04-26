@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+*.db
+chroma_db/
+faiss_index/
+node_modules/
+.next/
+dist/
+*.log
+.DS_Store

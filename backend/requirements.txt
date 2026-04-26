@@ -1,0 +1,44 @@
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9      # file uploads
+
+# Config
+pydantic-settings==2.3.0
+python-dotenv==1.0.1
+
+# RAG & LLM
+langchain==0.2.6
+langchain-openai==0.1.14
+langchain-community==0.2.6
+openai==1.35.3
+
+# Vector store (MVP)
+chromadb==0.5.3
+
+# NLP / NER
+spacy==3.7.5
+
+# OCR (Phase 2, but install now)
+pytesseract==0.3.10
+Pillow==10.4.0
+
+# Embeddings
+sentence-transformers==3.0.1
+
+# Async tasks (Phase 2, scaffold now)
+celery==5.4.0
+redis==5.0.7
+
+# Database
+sqlalchemy==2.0.31
+asyncpg==0.29.0
+
+# Testing
+pytest==8.2.2
+pytest-asyncio==0.23.7
+httpx==0.27.0              # test client
+
+# Utilities
+python-jose[cryptography]==3.3.0  # JWT auth later
+structlog==24.2.0                 # structured logging
