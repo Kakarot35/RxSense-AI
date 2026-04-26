@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.config import settings
 from app.routers import prescriptions, health
 import structlog
@@ -22,6 +24,9 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(prescriptions.router, prefix="/api/v1")
+
+Path("./audio_cache").mkdir(exist_ok=True)
+app.mount("/audio", StaticFiles(directory="audio_cache"), name="audio")
 
 @app.on_event("startup")
 async def startup():

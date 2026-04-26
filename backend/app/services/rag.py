@@ -3,7 +3,7 @@ RAG pipeline — retrieves drug knowledge and generates patient-friendly explana
 """
 import chromadb
 from chromadb.utils import embedding_functions
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from app.core.config import settings
@@ -40,30 +40,18 @@ Write a clear, patient-friendly explanation for this prescription entry."""
 
 class RAGService:
     def __init__(self):
-        self._chroma = None
-        self._collection = None
         self._llm = None
         self._chain = None
 
     def _init(self):
         """Lazy init — don't load models at import time."""
-        if self._chroma is not None:
+        if self._llm is not None:
             return
 
-        ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
-        )
-        self._chroma = chromadb.PersistentClient(path=settings.chroma_persist_dir)
-        self._collection = self._chroma.get_or_create_collection(
-            name="drug_knowledge",
-            embedding_function=ef,
-            metadata={"hnsw:space": "cosine"},
-        )
-
-        self._llm = ChatOpenAI(
-            model="gpt-4o-mini",        # cheaper than gpt-4-turbo, good enough for MVP
-            temperature=0,              # deterministic — critical for medical content
-            api_key=settings.openai_api_key,
+        self._llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",   # free tier, fast
+            temperature=0,
+            google_api_key=settings.google_api_key,
         )
 
         prompt = ChatPromptTemplate.from_messages([
@@ -74,45 +62,31 @@ class RAGService:
 
     def retrieve(self, drug_name: str, n: int = TOP_K) -> tuple[str, float]:
         """
-        Query ChromaDB for the most relevant chunks for a drug.
+        Query FAISS for the most relevant chunks for a drug.
         Returns (assembled_context, best_similarity_score).
         """
+        from app.db.faiss_store import faiss_store
         self._init()
 
-        results = self._collection.query(
-            query_texts=[drug_name],
-            n_results=n,
-            where={"drug": drug_name.lower()},   # metadata filter first
-            include=["documents", "distances", "metadatas"],
-        )
+        results = faiss_store.search(drug_name, k=n, drug_filter=drug_name.lower())
 
-        if not results["documents"] or not results["documents"][0]:
+        if not results:
             # Fallback: search without drug filter (broader)
-            results = self._collection.query(
-                query_texts=[drug_name],
-                n_results=n,
-                include=["documents", "distances", "metadatas"],
-            )
+            results = faiss_store.search(drug_name, k=n)
 
-        docs = results["documents"][0] if results["documents"] else []
-        distances = results["distances"][0] if results["distances"] else []
-        metas = results["metadatas"][0] if results["metadatas"] else []
-
-        if not docs:
+        if not results:
             return "", 0.0
-
-        # ChromaDB cosine distance: 0=identical, 2=opposite → convert to similarity
-        similarities = [1 - d for d in distances]
-        best_score = max(similarities) if similarities else 0.0
 
         # Assemble context with source attribution
         context_parts = []
-        for doc, meta, sim in zip(docs, metas, similarities):
-            source = meta.get("source", "Unknown")
-            context_parts.append(f"[Source: {source}]\n{doc}")
+        best_score = max(r["score"] for r in results)
+        
+        for r in results:
+            source = r["metadata"].get("source", "Unknown")
+            context_parts.append(f"[Source: {source}]\n{r['text']}")
 
         context = "\n\n---\n\n".join(context_parts)
-        log.info("rag.retrieved", drug=drug_name, chunks=len(docs), best_score=round(best_score, 3))
+        log.info("rag.retrieved", drug=drug_name, chunks=len(results), best_score=round(best_score, 3))
         return context, best_score
 
     def explain(self, entity: DrugEntity) -> dict:

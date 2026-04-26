@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./chroma_db"
     log_level: str = "INFO"
     drugbank_api_key: str = ""
+    google_api_key: str = ""
     google_tts_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

@@ -1,44 +1,56 @@
 # Web framework
-fastapi==0.111.0
-uvicorn[standard]==0.30.0
-python-multipart==0.0.9      # file uploads
+fastapi
+uvicorn[standard]
+python-multipart
 
 # Config
-pydantic-settings==2.3.0
-python-dotenv==1.0.1
+pydantic-settings
+python-dotenv
 
 # RAG & LLM
-langchain==0.2.6
-langchain-openai==0.1.14
-langchain-community==0.2.6
-openai==1.35.3
+langchain
+langchain-openai
+langchain-google-genai
+langchain-community
+openai
 
-# Vector store (MVP)
-chromadb==0.5.3
+# Vector store (Phase 1)
+chromadb
+faiss-cpu
 
 # NLP / NER
-spacy==3.7.5
+spacy>=3.8.0
+# scispacy (Fails to build on Python 3.13 due to spacy 3.6 dependency)
+# https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.3/en_ner_bc5cdr_md-0.5.3.tar.gz
 
-# OCR (Phase 2, but install now)
-pytesseract==0.3.10
-Pillow==10.4.0
+# OCR
+pytesseract
+Pillow
+opencv-python-headless
+transformers
+torch
 
 # Embeddings
-sentence-transformers==3.0.1
+sentence-transformers
 
-# Async tasks (Phase 2, scaffold now)
-celery==5.4.0
-redis==5.0.7
+# Async tasks
+celery[redis]
+redis
+flower
 
 # Database
-sqlalchemy==2.0.31
-asyncpg==0.29.0
+sqlalchemy
+asyncpg
+
+# TTS & PDF Export
+gTTS
+reportlab
 
 # Testing
-pytest==8.2.2
-pytest-asyncio==0.23.7
-httpx==0.27.0              # test client
+pytest
+pytest-asyncio
+httpx
 
 # Utilities
-python-jose[cryptography]==3.3.0  # JWT auth later
-structlog==24.2.0                 # structured logging
+python-jose[cryptography]
+structlog
