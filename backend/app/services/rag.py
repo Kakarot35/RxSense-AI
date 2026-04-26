@@ -49,7 +49,7 @@ class RAGService:
             return
 
         self._llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",   # free tier, fast
+            model="gemini-2.0-flash",   # free tier, fast
             temperature=0,
             google_api_key=settings.google_api_key,
         )
